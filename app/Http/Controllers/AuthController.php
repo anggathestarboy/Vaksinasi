@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Follow;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -38,19 +40,74 @@ return response()->json([
     }
 
 
-    public function getDetailUser($username) {
-        $user = User::where("username", $username)->first();
-
-        if (!$user) {
-            return response()->json([
-                "message" => "User not found"
-            ], 404);
-        }
 
 
-        return response()->json($user->load('posts')->load('posts.attachments')->loadCount('posts')->loadCount('follower')->loadCount('following'));
+public function getDetailUser($username)
+{
+    $user = User::where('username', $username)->first();
 
+    if (!$user) {
+        return response()->json([
+            'message' => 'User not found'
+        ], 404);
     }
+
+    $authUser = Auth::user();
+
+    if (!$authUser) {
+        return response()->json([
+            'message' => 'Unauthenticated'
+        ], 401);
+    }
+
+    // Ambil data follow (kalau ada)
+    $follow = Follow::where('follower_id', $authUser->id)
+        ->where('following_id', $user->id)
+        ->first();
+
+    $isFollowing = $follow !== null;
+    $isAccepted  = $follow && $follow->is_accepted == 1;
+
+        $isAccepted = Follow::where('follower_id', $authUser->id)
+    ->where('following_id', $user->id)
+    ->where('is_accepted', 1)
+    ->exists();
+
+    // 🔐 AKUN PRIVATE - BLOK AKSES
+    if (
+        $user->is_private == 1 &&
+        $authUser->id !== $user->id &&
+        (!$isFollowing || !$isAccepted)
+    ) {
+        return response()->json([
+            'message' => 'This account is private',
+            'is_private' => true,
+            "is_accepted" => $isAccepted,
+            "full_name" => $user->full_name,
+            "username" => $user->username,
+            "bio" => $user->bio,
+            'follow_status' => $isFollowing ? 'requested' : 'not_following',
+            'posts_count' => $user->posts()->count(),
+            'follower_count' => Follow::where('following_id', $user->id)->count(),
+            'following_count' => Follow::where('follower_id', $user->id)->count(),
+        ], 403);
+    }
+
+
+
+   
+    $user->load('posts.attachments')->loadCount('posts');
+
+    return response()->json([
+        'user' => $user,
+            "follow_status" => $isAccepted  ? "sudah" : "belum",
+
+         'is_accepted' => $isAccepted  ,
+        'follower_count' => Follow::where('following_id', $user->id)->count(),
+        'following_count' => Follow::where('follower_id', $user->id)->count(),
+    ]);
+}
+
 
 
 

@@ -79,7 +79,7 @@ class FollowController extends Controller
            ], 422);
         }
 
-        if ($cek->is_accepted = true) {
+        if ($cek->is_accepted === 1) {
            return response()->json([
             "message" => "Follow request is already accepted"
            ], 422);
