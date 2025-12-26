@@ -1,0 +1,13 @@
+.spot.disabled {
+  background-color: #f8f9fa;
+  border: 1px dashed #ccc;
+  cursor: not-allowed;
+}
+
+.spot.disabled h5 {
+  color: #999 !important;
+}
+
+.spot.disabled span {
+  color: #aaa !important;
+}
