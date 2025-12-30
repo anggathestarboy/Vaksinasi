@@ -29,7 +29,6 @@ Facegram adalah aplikasi media sosial sederhana yang terinspirasi dari Instagram
 * 🖼️ Upload dan tampilkan postingan (gambar)
 * 📰 Feed postingan pengguna
 * 🔍 Pencarian data (user / post)
-* 📱 Responsive design
 * 🔒 Proteksi route menggunakan token
 
 ---
